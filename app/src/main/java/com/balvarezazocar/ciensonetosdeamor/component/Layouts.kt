@@ -23,10 +23,3 @@ fun Modifier.firstBaseLineToTop(
         placeable.placeRelative(0, placeableY)
     }
 }
-@Composable
-fun Customlayouts(
-    modifier : Modifier = Modifier,
-    content: @Composable ()-> Unit
-){
-
-}
