@@ -1,115 +1,190 @@
 package com.balvarezazocar.ciensonetosdeamor
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.AlignmentLine
+import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.balvarezazocar.ciensonetosdeamor.component.convertirANumerosRomanos
+import com.balvarezazocar.ciensonetosdeamor.component.firstBaseLineToTop
 import com.balvarezazocar.ciensonetosdeamor.ui.theme.CienSonetosDeAmorTheme
+import com.google.accompanist.glide.GlideImage
+import com.google.accompanist.imageloading.ImageLoadState
+import com.google.accompanist.imageloading.MaterialLoadingImage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            CienSonetosDeAmorTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = colors.background) {
-//                    PhotographerCardPreview()
-                    LayoutsCienSonetosDeAmorTheme()
-                }
-            }
+            val listSize = 100
+            // We save the scrolling position with this state
+            val scrollState = rememberLazyListState()
+            // We save the coroutine scope where our animated scroll will be executed
+            val coroutineScope = rememberCoroutineScope()
+
+            MyApp(content = {
+                LayoutsCienSonetosDeAmorTheme(listSize,scrollState,coroutineScope)
+            })
         }
     }
 }
 @Composable
-fun LayoutsCienSonetosDeAmorTheme(){
+private fun MyApp(content:@Composable ()-> Unit) {
+    CienSonetosDeAmorTheme {
+        // A surface container using the 'background' color from the theme
+        Surface(color = colors.background) {
+            //                    PhotographerCardPreview()
+            content()
+        }
+    }
+}
+
+@Composable
+fun LayoutsCienSonetosDeAmorTheme(
+    listSize: Int,
+    scrollState: LazyListState,
+    coroutineScope: CoroutineScope
+){
     Scaffold(
         topBar = {
             TopAppBar(title = {
                 Text(text = "Cien Sonetos de Amor")
             },
                 actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(Icons.Filled.Info, contentDescription = null)
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            // 0 is the first item index
+                            scrollState.animateScrollToItem(0)
+                        }
+                    }) {
+                        Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null)
+                    }
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            // listSize - 1 is the last index of the list
+                            scrollState.animateScrollToItem(listSize -1)
+                        }
+                    }) {
+                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
                     }
                 },
                 backgroundColor = MaterialTheme.colors.onPrimary
             )
         }
-    ) {
-            innerPadding ->  BodyContent(
+    ) { innerPadding ->  BodyContent(
         Modifier
             .padding(innerPadding)
-            .padding(8.dp))
+            .padding(2.dp),listSize,scrollState)
     }
 }
 
 @Composable
-fun BodyContent(modifier: Modifier = Modifier){
-        ListPoem()
+fun BodyContent(modifier: Modifier = Modifier, listSize: Int, scrollState: LazyListState){
+    ListPoem(listSize,scrollState)
 }
 @Composable
-fun ListPoem (){
-    val scrollState = rememberScrollState()
-    Column(
-        Modifier.verticalScroll(scrollState)
-    ) {
-        repeat(100){
-            ItemPoem(modifier = Modifier, convertirANumerosRomanos(it+1).toString())
-        }
+fun ListPoem(listSize: Int, scrollState: LazyListState) {
+    Column () {
+        LazyColumn(
+            state = scrollState,
+            content = {
+            items(listSize) {
+                ItemPoem(modifier = Modifier, convertirANumerosRomanos(it + 1).toString())
+            }
+        })
     }
 }
-@Preview
-@Composable
-fun LayoutsCienSonetosDeAmorThemePreview(){
-    CienSonetosDeAmorTheme() {
-        LayoutsCienSonetosDeAmorTheme()
-    }
-}
+
 @Composable
 fun ItemPoem(modifier: Modifier = Modifier,numeroSoneto: String){
+    val context = LocalContext.current
     Row(
         modifier
-            .padding(8.dp)
+            .padding(1.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(MaterialTheme.colors.surface)
-            .clickable {
-
-            }
-            .padding(16.dp)
+            .clickable(
+                onClick = {
+                    val text = "Item Seleccionado"
+                    val duration = Toast.LENGTH_SHORT
+                    val applicationContext = context
+                    val toast = Toast.makeText(applicationContext, text, duration)
+                    toast.show()
+                }
+            )
+            .padding(10.dp)
             .fillMaxWidth()
-
     ){
         Surface(
-            modifier.size(50.dp),
+            modifier.size(60.dp),
             shape = CircleShape,
             color = colors.onSurface.copy(alpha = 0.2f)
         ) {
             //My photo
-            Image(painter = painterResource(
-                id = R.drawable.images),
-                contentDescription = "Soneto " + numeroSoneto
-            )
+
+//            GlideImage(
+//                data = "https://picsum.photos/300/300",
+//                contentDescription = "My content description",
+//                requestBuilder = {
+//                    val options = RequestOptions()
+//                    options.centerCrop()
+//                    apply(options)
+//                },
+//                modifier = Modifier.size(50.dp),
+//                error = {
+//                    Image(painter = painterResource(
+//                        id = R.drawable.images),
+//                        contentDescription = "Soneto " + numeroSoneto
+//                    )
+//                },
+//                fadeIn = true
+//            )
+
+            GlideImage(
+                data = "https://picsum.photos/300/300",
+            ) {
+                    imageState ->
+                when (imageState) {
+                    is ImageLoadState.Success -> {
+                        MaterialLoadingImage(
+                            result = imageState,
+                            contentDescription = "My content description",
+                            fadeInEnabled = true,
+                            fadeInDurationMs = 600,
+                        )
+                    }
+                    is ImageLoadState.Error -> {/* TODO */}
+                    ImageLoadState.Loading -> {/* TODO */}
+                    ImageLoadState.Empty -> { /* TODO */}
+                }
+            }
         }
+
 
         Column(
             modifier
@@ -119,90 +194,21 @@ fun ItemPoem(modifier: Modifier = Modifier,numeroSoneto: String){
 
             Text(text = "Soneto "+ numeroSoneto,fontWeight = FontWeight.Bold)
             CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-                Text(text = "", style = MaterialTheme.typography.body2)
+                TextClicked()
             }
         }
 
     }
 }
-fun convertirANumerosRomanos(numero: Int): String? {
-    var i: Int
-    val miles: Int
-    val centenas: Int
-    val decenas: Int
-    val unidades: Int
-    var romano = ""
-    //obtenemos cada cifra del número
-    miles = numero / 1000
-    centenas = numero / 100 % 10
-    decenas = numero / 10 % 10
-    unidades = numero % 10
 
-    //millar
-    i = 1
-    while (i <= miles) {
-        romano = romano + "M"
-        i++
-    }
-
-    //centenas
-    if (centenas == 9) {
-        romano = romano + "CM"
-    } else if (centenas >= 5) {
-        romano = romano + "D"
-        i = 6
-        while (i <= centenas) {
-            romano = romano + "C"
-            i++
-        }
-    } else if (centenas == 4) {
-        romano = romano + "CD"
-    } else {
-        i = 1
-        while (i <= centenas) {
-            romano = romano + "C"
-            i++
-        }
-    }
-
-    //decenas
-    if (decenas == 9) {
-        romano = romano + "XC"
-    } else if (decenas >= 5) {
-        romano = romano + "L"
-        i = 6
-        while (i <= decenas) {
-            romano = romano + "X"
-            i++
-        }
-    } else if (decenas == 4) {
-        romano = romano + "XL"
-    } else {
-        i = 1
-        while (i <= decenas) {
-            romano = romano + "X"
-            i++
-        }
-    }
-
-    //unidades
-    if (unidades == 9) {
-        romano = romano + "IX"
-    } else if (unidades >= 5) {
-        romano = romano + "V"
-        i = 6
-        while (i <= unidades) {
-            romano = romano + "I"
-            i++
-        }
-    } else if (unidades == 4) {
-        romano = romano + "IV"
-    } else {
-        i = 1
-        while (i <= unidades) {
-            romano = romano + "I"
-            i++
-        }
-    }
-    return romano
+@Composable
+fun TextClicked() {
+    val count = remember{mutableStateOf(0)}
+    Text(text = "Presionado ", modifier = Modifier.firstBaseLineToTop(12.dp),style = MaterialTheme.typography.body2)
 }
+
+
+
+
+
+
