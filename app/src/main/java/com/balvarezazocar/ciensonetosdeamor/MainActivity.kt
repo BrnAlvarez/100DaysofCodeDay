@@ -19,14 +19,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.AlignmentLine
-import androidx.compose.ui.layout.FirstBaseline
-import androidx.compose.ui.layout.Placeable
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.balvarezazocar.ciensonetosdeamor.component.convertirANumerosRomanos
 import com.balvarezazocar.ciensonetosdeamor.component.firstBaseLineToTop
@@ -36,6 +30,12 @@ import com.google.accompanist.imageloading.ImageLoadState
 import com.google.accompanist.imageloading.MaterialLoadingImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import androidx.core.content.ContextCompat.startActivity
+
+import android.content.Intent
+
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,11 +130,16 @@ fun ItemPoem(modifier: Modifier = Modifier,numeroSoneto: String){
             .background(MaterialTheme.colors.surface)
             .clickable(
                 onClick = {
-                    val text = "Item Seleccionado"
-                    val duration = Toast.LENGTH_SHORT
+//                    val text = "Item Seleccionado "+numeroSoneto
+//                    val duration = Toast.LENGTH_SHORT
                     val applicationContext = context
-                    val toast = Toast.makeText(applicationContext, text, duration)
-                    toast.show()
+//                    val toast = Toast.makeText(applicationContext, text, duration)
+//                    toast.show()
+                    var inte  = Intent(applicationContext,MainActivity2()::class.java)
+                    inte.putExtra("numeroSoneto",numeroSoneto)
+                    applicationContext.startActivity(inte)
+
+
                 }
             )
             .padding(10.dp)
@@ -192,7 +197,8 @@ fun ItemPoem(modifier: Modifier = Modifier,numeroSoneto: String){
                 .align(Alignment.CenterVertically)
         ) {
 
-            Text(text = "Soneto "+ numeroSoneto,fontWeight = FontWeight.Bold)
+            Text(text = "Soneto "+ numeroSoneto,fontWeight = FontWeight.Bold
+            )
             CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
                 TextClicked()
             }
@@ -204,7 +210,12 @@ fun ItemPoem(modifier: Modifier = Modifier,numeroSoneto: String){
 @Composable
 fun TextClicked() {
     val count = remember{mutableStateOf(0)}
-    Text(text = "Presionado ", modifier = Modifier.firstBaseLineToTop(12.dp),style = MaterialTheme.typography.body2)
+    Text(text = "Presionado ",
+        modifier = Modifier
+            .firstBaseLineToTop(12.dp),
+
+        style = MaterialTheme.typography.body2
+    )
 }
 
 
